@@ -2,7 +2,7 @@
 
 Drop audio or video onto Under 20. It saves a copy **under 20 MB** beside each original, ready to attach or share.
 
-**[Download for Windows x64 · 551 KB ZIP](downloads/Under20-Windows.zip?raw=1)**
+**[Download for Windows x64 · 551 KB ZIP](https://github.com/tobiko-dev/media-under-20mb/releases/download/v1.0.0/Under20-Windows.zip)**
 
 Extract the ZIP, open `Under20.exe`, and drop in your files. It uses your installed FFmpeg. Select a finished row and click **Open file location** to jump to the copy.
 
