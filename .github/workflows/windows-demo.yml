@@ -1,0 +1,42 @@
+name: Windows demo
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - downloads/Under20-Windows.zip
+      - tools/capture-windows.ps1
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: windows-2022
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Find FFmpeg
+        shell: pwsh
+        run: |
+          if ((Get-Command ffmpeg.exe -ErrorAction SilentlyContinue) -and
+              (Get-Command ffprobe.exe -ErrorAction SilentlyContinue)) { exit 0 }
+          $zip = Join-Path $env:RUNNER_TEMP 'ffmpeg-tools.zip'
+          $url = 'https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-9.1-essentials_build.zip'
+          curl.exe --fail --silent --show-error --location --retry 2 $url -o $zip
+          if ($LASTEXITCODE -ne 0) { throw 'FFmpeg download failed' }
+          $wanted = 'B9BBBB3ACECE000CBEEC994F856649354E52C773807841E78908374B24D658FD'
+          if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne $wanted) { throw 'FFmpeg archive checksum mismatch' }
+          $dest = Join-Path $env:RUNNER_TEMP 'ffmpeg-tools'
+          Expand-Archive -LiteralPath $zip -DestinationPath $dest
+          (Get-ChildItem $dest -Recurse -Filter ffmpeg.exe | Select-Object -First 1).DirectoryName >> $env:GITHUB_PATH
+      - name: Exercise the packaged desktop app
+        shell: powershell
+        run: ./tools/capture-windows.ps1 -Output "$env:RUNNER_TEMP/under20-capture"
+      - name: Save demo frames and measurements
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: under20-windows-demo
+          path: ${{ runner.temp }}/under20-capture/
+          if-no-files-found: error
+          retention-days: 7
